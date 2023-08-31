@@ -112,10 +112,13 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        
         // hit data api untuk sementara hardcode untuk client_id dan client_secret
+        $revoke_token_acm = $request->input('acm_access_token');
+        $revoke_token_hcm = $request->input('token');
         $ApiUrl = "https://d3v-manage-adm-api.guestpro.co.id/auth/revoke";
         $apiData = [
-            "token" => $request->input('token'),
+            "token" => $revoke_token_acm,
             "client_id" => "psvJp4QNw6CAgXzfgATupKMvT8P1uOE68kvgeNXI",
             "client_secret" => "deJiuGhwchG7UinhD35egITOExc4vUSMCsjYokg2bQdTkka1vxpppnEdMPBpqOWw9rTI5AmqhxSmesQ1xvD0HReqAyn45MvMy62hh4SDwafrp1oUXW6cKmb8Un1rnE60"
         ];
@@ -123,12 +126,19 @@ class AuthController extends Controller
         $apiResponse = Http::post($ApiUrl, $apiData);
         $apiResponseJson = $apiResponse->json();
 
-        Auth::logout();
+        Auth::logout($revoke_token_hcm);
         return response()->json([
             'status' => true,
             'message' => 'Successfully logged out',
             'acm_revoke' => $apiResponseJson,
         ]);
+    }
+
+    public function revokeToken(Request $request)
+    {
+        $token = $request->input('token');
+        JWTAuth::invalidate($token);
+        return response()->json(['message' => 'Token revoked']);
     }
 
     public function refresh(Request $request)
